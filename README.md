@@ -1,25 +1,17 @@
 # YouTube Notification Bot
-**A Telegram Bot Which Can Send Notification When Your Given Content Creators Post A Video.**
+**A Telegram bot that will notify you about new videos on selected channels**
 
-# Fetures
-- Multi youtube Channel Id Supported.
-- Database Not Required.
-- Send Notification When A YouTuber **Started Live Stream or Posted A Video or Shorts.**
+# Features
+- Can monitor multiple YouTube channels.
+- Filter content by regex.
+- Can mail to multiple chats.
 
 ## Usage
-- `/subsinfo` - for get subscribed Channels list.
-- `/start` - you know thats it do.
+- `/start` - Subscribe to mailing.
+- `/stop` - Unsubscribe.
+- `/subs_info` - List of YouTube subscriptions.
+- `/add_yt_sub` - Add YouTube subscription. 
+Channel id or name(/add_yt_sub UCWOA1ZGywLbqmigxE4Qlvuw or /add_yt_sub @Netflix). Only for owner.
+- `/rm_yt_sub` - Remove YouTube subscription. Channel id. Only for owner.
 
-## Note
-- **if you are using the bot in pm, so Before deploying bot send `/start` or if you want to send notification in Channel , so make bot admin in Channel.**
-
-## Variables
-`APP_ID` `API_HASH` `BOT_TOKEN`
-
-`OWNER` : put id of ur telegram account.
-
-`CHAT`  :  put id of Channel or user where u want to get notified.
-
-`YT_CHANNEL_ID` : Put Id Of youtube channels with a space between it
-
-`YT_API_KEY` : get it from Google cloud Console.
+You need to configure the bot by `config.json` and `subscriptions.json` in order to use it.
