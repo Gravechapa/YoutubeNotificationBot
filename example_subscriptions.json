@@ -1,0 +1,7 @@
+{
+    "chats": "Telegram chats, channels or group IDs.",
+    "chats": [],
+    
+    "yt_channel_ids": "YouTube channel IDs (You can specify multiple channels comma separated).",
+    "yt_channel_ids": [""]
+}

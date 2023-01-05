@@ -15,11 +15,17 @@
 
 
 from . import *
+import re 
 
+if CONFIG.name_filter()["case_sensetive"]:
+    NAME_FILTER = re.compile(CONFIG.name_filter()["regex"])
+else:
+    NAME_FILTER = re.compile(CONFIG.name_filter()["regex"], re.IGNORECASE)
+    
 
 def dur_parser(_time):
     if not _time:
-        return "Not Found!"
+        return "Not found!"
     xx = _time.replace("PT", "")
     return xx.lower()
 
@@ -33,17 +39,18 @@ async def channel_info(ch_id):
 def video_info(_id):
     return YT.videos().list(part="snippet,contentDetails,statistics", id=_id).execute()
 
-
 async def proper_info_msg(client, to_id, yt_id):
     info = video_info(yt_id)["items"][0]
     channel_name = info["snippet"]["channelTitle"]
     video_title = info["snippet"]["title"]
+    if not NAME_FILTER.match(video_title):
+        return
     try:
         desc = info["snippet"]["description"]
         if len(desc) > 500:
             desc = desc[:300] + "..."
     except BaseException:
-        desc = "Not Found!"
+        desc = "Not found!"
     pub_time = info["snippet"]["publishedAt"].replace("T", " ").replace("Z", " ")
     try:
         thumb = info["snippet"]["thumbnails"]["maxres"]["url"]
@@ -53,17 +60,17 @@ async def proper_info_msg(client, to_id, yt_id):
     try:
         dur = dur_parser(info["contentDetails"]["duration"])
     except BaseException:
-        dur = "Not Found!"
+        dur = "Not found!"
     text = ""
     if info["snippet"]["liveBroadcastContent"] == "live":
-        text += f"**{channel_name} is Live 🔴**\n\n"
+        text += f"**{channel_name} is live 🔴**\n\n"
         dur = "♾"
     else:
-        text += f"**{channel_name} Just Uploaded A Video**\n\n"
+        text += f"**{channel_name} just uploaded a video**\n\n"
     text += f"```Title - {video_title}\n"
     text += f"Description - {desc}\n"
     text += f"Duration - {dur}\n"
-    text += f"Published At - {pub_time}```\n"
+    text += f"Published at - {pub_time}```\n"
     await client.send_file(
         to_id,
         file=f"{thumb.split('/')[-2]}.jpg",

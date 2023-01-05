@@ -17,10 +17,10 @@
 from . import *
 from .helper import *
 
-LOGS.info("• Starting Bot... •")
+LOGS.info("Starting the bot")
 
 try:
-    bot.start(bot_token=BOT_TOKEN)
+    bot.start(bot_token=CONFIG.bot_token())
 except Exception as exc:
     LOGS.info(str(exc))
 
@@ -28,7 +28,7 @@ except Exception as exc:
 @bot.on(events.NewMessage(pattern="/start"))
 async def start(event):
     await event.reply(
-        f"Hi `{event.sender.first_name}`\nThis is A YouTube Notification Bot.\n I Notified You Wen Your Subscribed Youtubers Post A Video or Start A Live Streams",
+        f"Hi, `{event.sender.first_name}`.\nThis is a YouTube notification bot.\nYou'll be notified when the YouTube channel, you subscribed to, publishes a video or starts a live stream.",
         buttons=[
             [
                 Button.url("SOURCE CODE", url="github.com/Kaif-00z/"),
@@ -38,40 +38,41 @@ async def start(event):
     )
 
 
-@bot.on(events.NewMessage(incoming=True, pattern="/subsinfo"))
+@bot.on(events.NewMessage(incoming=True, pattern="/subs_info"))
 async def sub_info(event):
-    if str(events.sender_id) not in OWNER:
+    if str(event.sender_id) not in CONFIG.owner():
         return
-    text = "**List Of Subscribed Channel**\n\n"
-    for id in CH_IDS:
+    text = "**List of subscriptions**\n\n"
+    for id in SUBS.channels():
         info = await channel_info(id)
         text += f"`• {info['items'][0]['snippet']['title']}`\n"
     await event.reply(text)
 
-
+FEED_URL = f"https://www.youtube.com/feeds/videos.xml?channel_id="
 async def save_it():
-    for id in CH_IDS:
-        feed_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={id}"
-        feed = feedparser.parse(feed_url)
+    for id in SUBS.channels():
+        feed = feedparser.parse(FEED_URL + id)
         yt_link = feed.entries[0].yt_videoid
         if yt_link not in MEMORY:
             MEMORY.append(yt_link)
 
 
 async def forever_check():
-    for id in CH_IDS:
-        feed_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={id}"
-        feed = feedparser.parse(feed_url)
+    global MEMORY
+    for id in SUBS.channels():
+        feed = feedparser.parse(FEED_URL + id)
         yt_link = feed.entries[0].yt_videoid
         if yt_link not in MEMORY:
-            await proper_info_msg(bot, CHAT, yt_link)
+            await proper_info_msg(bot, SUBS.chats()[0], yt_link)
             MEMORY.append(yt_link)
+        if len(MEMORY) > MEMORY_LIMIT:
+            MEMORY = MEMORY[len(MEMORY) - MEMORY_LIMIT::]
         await asyncio.sleep(0.5)
 
 
 sch.add_job(forever_check, "interval", seconds=30)
 
-LOGS.info("Bot has started...")
+LOGS.info("The bot has started")
 bot.loop.run_until_complete(save_it())
 sch.start()
 bot.loop.run_forever()

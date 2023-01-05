@@ -28,23 +28,23 @@ from .config import *
 
 sch = AsyncIOScheduler()
 MEMORY = []
+MEMORY_LIMIT = 10000
+CONFIG = Config()
+SUBS = Subscriptions()
 
 basicConfig(format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=INFO)
 LOGS = getLogger(__name__)
 
 try:
-    YT = build("youtube", "v3", developerKey=YT_API_KEY)
-    LOGS.info("Successfully Connected With YouTube...")
+    YT = build("youtube", "v3", developerKey=CONFIG.yt_api_key())
+    LOGS.info("Successfully connected to YouTube")
 except BaseException:
     LOGS.info(str(er))
     exit()
 
-CH_IDS = CH_ID.split(" ")
-
 try:
-    bot = TelegramClient(None, APP_ID, API_HASH)
-    LOGS.info("successfully connected to telegram")
+    bot = TelegramClient(None, CONFIG.api_id(), CONFIG.api_hash())
+    LOGS.info("Successfully connected to Telegram")
 except Exception as e:
-    LOGS.info("Environment vars are missing")
     LOGS.info(str(e))
     exit()

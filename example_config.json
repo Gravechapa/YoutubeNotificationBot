@@ -1,0 +1,22 @@
+{
+    "api_id": "Your API ID, from my.telegram.org or @apiScrapperRoBot.(Leave empty to use default value)",
+    "api_id": "",
+    
+    "api_hash": "Your API hash, from my.telegram.org or @apiScrapperRoBot.(Leave empty to use default value)",
+    "api_hash": "",
+    
+    "bot_token": "Bot's HTTP API token, from @BotFather",
+    "bot_token": "",
+    
+    "owner": "Your Telegram ID.",
+    "owner": "",
+    
+    "yt_api_key": "YouTube API key (YouTube data v3).",
+    "yt_api_key": "",
+    
+    "name_filter": "You can specify a regular expression to filter content.",
+    "name_filter": {
+        "regex": "",
+        "case_sensetive": false 
+    }
+}

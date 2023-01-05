@@ -23,6 +23,3 @@
 `YT_CHANNEL_ID` : Put Id Of youtube channels with a space between it
 
 `YT_API_KEY` : get it from Google cloud Console.
-
-## Deployment
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)

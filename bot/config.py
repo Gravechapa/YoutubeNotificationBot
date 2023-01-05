@@ -13,19 +13,76 @@
 # License can be found in <
 # https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License> .
 
+import json
 
-from decouple import config
+class Config:
+    def __init__(self):
+        try:
+            with open("config.json", "r") as config_file:
+                self.__data = json.load(config_file)
+                config_file.close()
+            if not self.__data["api_id"] or not self.__data["api_hash"]:
+                self.__data["api_id"] = 6
+                self.__data["api_hash"] = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
+            if not self.__data["name_filter"]["regex"]:
+                self.__data["name_filter"]["regex"] = ".*"
+            if not self.__data["bot_token"] or not self.__data["yt_api_key"]:
+                raise Exception("bot_token or yt_api_key is not set") 
+            
+        except Exception as e:
+            LOGS.info("Config parsing failed")
+            LOGS.info(str(e))
+            exit()
 
-try:
-    APP_ID = config("APP_ID", default=6, cast=int)
-    API_HASH = config("API_HASH", default="eb06d4abfb49dc3eeb1aeb98ae0f581e")
-    BOT_TOKEN = config("BOT_TOKEN")
-    YT_API_KEY = config("YT_API_KEY")
-    OWNER = config("OWNER")
-    CHAT = config("CHAT", cast=int)
-    CH_ID = config("YT_CHANNEL_ID")
-except Exception as e:
-    LOGS.info("Environment vars Missing")
-    LOGS.info("something went wrong")
-    LOGS.info(str(e))
-    exit()
+    def api_id(self):
+        return self.__data["api_id"]
+    def api_hash(self):
+        return self.__data["api_hash"]
+    def bot_token(self):
+        return self.__data["bot_token"]
+    def owner(self):
+        return self.__data["owner"]
+    def yt_api_key(self):
+        return self.__data["yt_api_key"]
+    def name_filter(self):
+        return self.__data["name_filter"]
+
+class Subscriptions:
+    def __init__(self):
+        try:
+            with open("subscriptions.json", "r") as subscriptions_file:
+                self.__data = json.load(subscriptions_file)
+                subscriptions_file.close()
+            
+        except Exception as e:
+            LOGS.info("Subscriptions parsing failed")
+            LOGS.info(str(e))
+            exit()
+
+    def __updateJson(self):
+        try:
+            with open("subscriptions.json", "w") as subscriptions_file:
+                json.dump(self.__data, subscriptions_file)
+                subscriptions_file.close()
+            
+        except Exception as e:
+            LOGS.info("Subscriptions write failed")
+            LOGS.info(str(e))
+    
+    def chats(self):
+        return self.__data["chats"]
+    def channels(self):
+        return self.__data["yt_channel_ids"]
+
+    def add_chat(self, chat_id):
+        self.__data["chats"].append(chat_id)
+        __updateJson()
+    def add_channel(self, channel_id):
+        self.__data["yt_channel_ids"].append(channel_id)
+        __updateJson()
+    def remove_chat(self, chat_id):
+        self.__data["chats"].remove(chat_id)
+        __updateJson()
+    def remove_channel(self, channel_id):
+        self.__data["yt_channel_ids"].remove(channel_id)
+        __updateJson()
