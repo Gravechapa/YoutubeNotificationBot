@@ -162,10 +162,10 @@ bot(functions.bots.SetBotCommandsRequest(
                 description='List of YouTube subscriptions'),
             types.BotCommand(
                 command='add_yt_sub',
-                description='Add YouTube subscription'),
+                description='Add YouTube subscription. Admin only.'),
             types.BotCommand(
                 command='rm_yt_sub',
-                description='Remove YouTube subscription')]))
+                description='Remove YouTube subscription. Admin only.')]))
 
 LOGS.info("The bot has started")
 sch.start()
