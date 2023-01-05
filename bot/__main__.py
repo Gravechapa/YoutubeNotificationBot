@@ -110,6 +110,25 @@ async def sub_info(event):
             text += f"`{channel_id} • {info['items'][0]['snippet']['title']}`\n"
     await event.reply(text)
 
+async def prepare():
+    await bot(functions.bots.SetBotCommandsRequest(
+            scope=types.BotCommandScopeDefault(),
+            lang_code='en',
+            commands=[types.BotCommand(
+                        command='start',
+                        description='Subscribe'),
+                    types.BotCommand(
+                        command='stop',
+                        description='Unsubscribe'),
+                    types.BotCommand(
+                        command='subs_info',
+                        description='List of YouTube subscriptions'),
+                    types.BotCommand(
+                        command='add_yt_sub',
+                        description='Add YouTube subscription. Admin only.'),
+                    types.BotCommand(
+                        command='rm_yt_sub',
+                        description='Remove YouTube subscription. Admin only.')]))
 
 async def forever_check():
     global MEMORY
@@ -148,25 +167,7 @@ sch.add_job(forever_check,
             minutes=5,
             start_date=datetime.datetime.now() - datetime.timedelta(seconds = 298))
 
-bot(functions.bots.SetBotCommandsRequest(
-    scope=types.BotCommandScopeDefault(),
-    lang_code='en',
-    commands=[types.BotCommand(
-                command='start',
-                description='Subscribe'),
-            types.BotCommand(
-                command='stop',
-                description='Unsubscribe'),
-            types.BotCommand(
-                command='subs_info',
-                description='List of YouTube subscriptions'),
-            types.BotCommand(
-                command='add_yt_sub',
-                description='Add YouTube subscription. Admin only.'),
-            types.BotCommand(
-                command='rm_yt_sub',
-                description='Remove YouTube subscription. Admin only.')]))
-
+bot.loop.run_until_complete(prepare())
 LOGS.info("The bot has started")
 sch.start()
 bot.loop.run_forever()

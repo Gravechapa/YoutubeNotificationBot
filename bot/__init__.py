@@ -18,7 +18,7 @@ from logging import INFO, basicConfig, getLogger
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from googleapiclient.discovery import build
-from telethon.sync import TelegramClient
+from telethon import TelegramClient
 
 from .config import Config, Subscriptions
 
