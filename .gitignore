@@ -1,3 +1,5 @@
 env/ 
 config.json
 subscriptions.json
+yn.db
+bot/__pycache__/

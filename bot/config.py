@@ -1,4 +1,4 @@
-#    This file is part of the Youtube Notification  distribution.
+#    This file is part of the Youtube Notification distribution.
 #    Copyright (c) 2022 kaif_00z
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -11,9 +11,11 @@
 #    General Public License for more details.
 #
 # License can be found in <
-# https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License> .
+# https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License>.
 
 import json
+import asyncio
+import sys
 
 class Config:
     def __init__(self):
@@ -27,12 +29,12 @@ class Config:
             if not self.__data["name_filter"]["regex"]:
                 self.__data["name_filter"]["regex"] = ".*"
             if not self.__data["bot_token"] or not self.__data["yt_api_key"]:
-                raise Exception("bot_token or yt_api_key is not set") 
-            
+                raise Exception("bot_token or yt_api_key is not set")
+
         except Exception as e:
             LOGS.info("Config parsing failed")
             LOGS.info(str(e))
-            exit()
+            sys.exit()
 
     def api_id(self):
         return self.__data["api_id"]
@@ -52,37 +54,42 @@ class Subscriptions:
         try:
             with open("subscriptions.json", "r") as subscriptions_file:
                 self.__data = json.load(subscriptions_file)
+                self.lock = asyncio.Lock()
                 subscriptions_file.close()
-            
+
         except Exception as e:
             LOGS.info("Subscriptions parsing failed")
             LOGS.info(str(e))
-            exit()
+            sys.exit()
 
-    def __updateJson(self):
+    def __update_json(self):
         try:
             with open("subscriptions.json", "w") as subscriptions_file:
                 json.dump(self.__data, subscriptions_file)
                 subscriptions_file.close()
-            
+
         except Exception as e:
             LOGS.info("Subscriptions write failed")
             LOGS.info(str(e))
-    
+
     def chats(self):
         return self.__data["chats"]
     def channels(self):
         return self.__data["yt_channel_ids"]
 
     def add_chat(self, chat_id):
-        self.__data["chats"].append(chat_id)
-        __updateJson()
+        if chat_id not in self.__data["chats"]:
+            self.__data["chats"].append(chat_id)
+            self.__update_json()
     def add_channel(self, channel_id):
-        self.__data["yt_channel_ids"].append(channel_id)
-        __updateJson()
+        if channel_id not in self.__data["yt_channel_ids"]:
+            self.__data["yt_channel_ids"].append(channel_id)
+            self.__update_json()
     def remove_chat(self, chat_id):
-        self.__data["chats"].remove(chat_id)
-        __updateJson()
+        if chat_id in self.__data["chats"]:
+            self.__data["chats"].remove(chat_id)
+            self.__update_json()
     def remove_channel(self, channel_id):
-        self.__data["yt_channel_ids"].remove(channel_id)
-        __updateJson()
+        if channel_id in self.__data["yt_channel_ids"]:
+            self.__data["yt_channel_ids"].remove(channel_id)
+            self.__update_json()

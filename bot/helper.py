@@ -1,4 +1,4 @@
-#    This file is part of the Youtube Notification  distribution.
+#    This file is part of the Youtube Notification distribution.
 #    Copyright (c) 2022 kaif_00z
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -11,17 +11,16 @@
 #    General Public License for more details.
 #
 # License can be found in <
-# https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License> .
+# https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License>.
 
-
-from . import *
-import re 
+import re
+from telethon import Button
+from . import CONFIG, YT
 
 if CONFIG.name_filter()["case_sensetive"]:
     NAME_FILTER = re.compile(CONFIG.name_filter()["regex"])
 else:
     NAME_FILTER = re.compile(CONFIG.name_filter()["regex"], re.IGNORECASE)
-    
 
 def dur_parser(_time):
     if not _time:
@@ -29,6 +28,10 @@ def dur_parser(_time):
     xx = _time.replace("PT", "")
     return xx.lower()
 
+async def channel_by_name(ch_name):
+    return (
+        YT.channels().list(part="id", forUsername=ch_name).execute()['items'][0]['id']
+    )
 
 async def channel_info(ch_id):
     return (
@@ -56,7 +59,6 @@ async def proper_info_msg(client, to_id, yt_id):
         thumb = info["snippet"]["thumbnails"]["maxres"]["url"]
     except BaseException:
         thumb = info["snippet"]["thumbnails"]["high"]["url"]
-    os.system(f"wget {thumb} -O {thumb.split('/')[-2]}.jpg")
     try:
         dur = dur_parser(info["contentDetails"]["duration"])
     except BaseException:
@@ -73,8 +75,7 @@ async def proper_info_msg(client, to_id, yt_id):
     text += f"Published at - {pub_time}```\n"
     await client.send_file(
         to_id,
-        file=f"{thumb.split('/')[-2]}.jpg",
+        file=f"{thumb}",
         caption=text,
         buttons=[[Button.url("Watch", url=f"https://www.youtube.com/watch?v={yt_id}")]],
     )
-    os.remove(f"{thumb.split('/')[-2]}.jpg")
