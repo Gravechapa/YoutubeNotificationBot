@@ -19,6 +19,7 @@ import pickle
 import datetime
 import feedparser
 from telethon import Button, events, functions, types
+from telethon.tl.types import User, Chat, Channel
 from .helper import channel_by_name, channel_info, proper_info_msg
 from . import LOGS, CONFIG, SUBS, bot, sch
 
@@ -42,10 +43,10 @@ async def start(event):
     async with SUBS.lock:
         SUBS.add_chat(event.chat_id)
     await event.reply(
-        f"""Hi, `{event.sender.first_name}`.\n
-        This is a YouTube notification bot.\n
-        You'll be notified when the YouTube channel,
-        you subscribed to, publishes a video or starts a live stream.""",
+        f"Hi, `{event.sender.username}`.\n" +
+        "This is a YouTube notification bot.\n" +
+        "You'll be notified when the YouTube channel, " +
+        "you subscribed to, publishes a video or starts a live stream.",
         buttons=[
             [
                 Button.url("Source code",
@@ -107,7 +108,26 @@ async def sub_info(event):
     async with SUBS.lock:
         for channel_id in SUBS.channels():
             info = await channel_info(channel_id)
-            text += f"`{channel_id} • {info['items'][0]['snippet']['title']}`\n"
+            text += f"`{channel_id}` • `{info['items'][0]['snippet']['title']}`\n"
+    await event.reply(text)
+    
+@bot.on(events.NewMessage(incoming=True, pattern="/mailing_list"))
+async def mailing_list(event):
+    if str(event.sender_id) not in CONFIG.owner():
+        await event.reply("You don't have permission.")
+        return
+    text = "**Mailing list**\n\n"
+    async with SUBS.lock:
+        for chat_id in SUBS.chats():
+            entity = await bot.get_entity(chat_id)
+            text += f"`{chat_id}` • "
+            if isinstance(entity, User):
+                text += f"`{entity.first_name} {entity.last_name}` `{entity.username}`"
+            if isinstance(entity, Chat):
+                text += f"`{entity.title}`"
+            if isinstance(entity, Channel):
+                text += f"`{entity.title}` `{entity.username}`"
+            text += '\n'
     await event.reply(text)
 
 async def prepare():
@@ -123,6 +143,9 @@ async def prepare():
                     types.BotCommand(
                         command='subs_info',
                         description='List of YouTube subscriptions'),
+                    types.BotCommand(
+                        command='mailing_list',
+                        description='List subscribers. Admin only'),
                     types.BotCommand(
                         command='add_yt_sub',
                         description='Add YouTube subscription. Admin only.'),

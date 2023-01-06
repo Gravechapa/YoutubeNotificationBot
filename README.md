@@ -10,8 +10,10 @@
 - `/start` - Subscribe to mailing.
 - `/stop` - Unsubscribe.
 - `/subs_info` - List of YouTube subscriptions.
-- `/add_yt_sub` - Add YouTube subscription. <br />Channel id or name(`/add_yt_sub UCWOA1ZGywLbqmigxE4Qlvuw` or `/add_yt_sub @Netflix`). Only for owner.
-- `/rm_yt_sub` - Remove YouTube subscription. Channel id. Only for owner.
+#### Only for owner
+- `/mailing_list` - List of subscribers.
+- `/add_yt_sub` - Add YouTube subscription. <br />Channel id or name(`/add_yt_sub UCWOA1ZGywLbqmigxE4Qlvuw` or `/add_yt_sub @Netflix`).
+- `/rm_yt_sub` - Remove YouTube subscription. Channel id.
 
 You need to configure the bot by `config.json` and `subscriptions.json` in order to use it.
 
