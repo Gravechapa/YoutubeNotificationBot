@@ -28,10 +28,10 @@ def dur_parser(_time):
     xx = _time.replace("PT", "")
     return xx.lower()
 
-async def channel_by_name(ch_name):
-    return (
-        YT.channels().list(part="id", forUsername=ch_name).execute()['items'][0]['id']
-    )
+async def channel_by_handle(handle):
+    result = YT.search().list(part="id", maxResults=1, q=handle, type="channel").execute()['items']
+    if len(result):
+        return result[0]['id']['channelId']
 
 async def channel_info(ch_id):
     return (

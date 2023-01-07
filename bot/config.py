@@ -81,15 +81,23 @@ class Subscriptions:
         if chat_id not in self.__data["chats"]:
             self.__data["chats"].append(chat_id)
             self.__update_json()
+            return True
+        return False
     def add_channel(self, channel_id):
         if channel_id not in self.__data["yt_channel_ids"]:
             self.__data["yt_channel_ids"].append(channel_id)
             self.__update_json()
+            return True
+        return False
     def remove_chat(self, chat_id):
         if chat_id in self.__data["chats"]:
             self.__data["chats"].remove(chat_id)
             self.__update_json()
+            return True
+        return False
     def remove_channel(self, channel_id):
         if channel_id in self.__data["yt_channel_ids"]:
             self.__data["yt_channel_ids"].remove(channel_id)
             self.__update_json()
+            return True
+        return False

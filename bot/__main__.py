@@ -14,13 +14,14 @@
 # https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License>.
 
 import os
+import re
 import asyncio
 import pickle
 import datetime
 import feedparser
 from telethon import Button, events, functions, types
 from telethon.tl.types import User, Chat, Channel
-from .helper import channel_by_name, channel_info, proper_info_msg
+from .helper import channel_by_handle, channel_info, proper_info_msg
 from . import LOGS, CONFIG, SUBS, bot, sch
 
 MEMORY_DB = "yn.db"
@@ -30,6 +31,10 @@ if os.path.exists(MEMORY_DB):
 else:
     MEMORY = []
 MEMORY_LIMIT = 10000
+
+CHANNEL_ID_FILTER = re.compile("^UC([-_a-z0-9]{22})$", re.IGNORECASE)
+CHANNEL_HANDLE_FILTER = re.compile("^@([-_.a-z0-9]{3,30})$", re.IGNORECASE)
+
 
 LOGS.info("Starting the bot")
 
@@ -60,46 +65,60 @@ async def start(event):
 @bot.on(events.NewMessage(pattern="/stop"))
 async def stop(event):
     async with SUBS.lock:
-        SUBS.remove_chat(event.chat_id)
-    await event.reply("You unsubscribed from mailing list.")
+        result = SUBS.remove_chat(event.chat_id)
+    if not result:
+        await event.reply("You aren't subscribed.")
+    await event.reply("You unsubscribed from the mailing list.")
 
-
+async def get_channel_id(event):
+    split_cmd = event.message.message.split(" ", 1)
+    if len(split_cmd) < 2:
+        await event.reply("Please specify the channel.")
+        return
+    yt_channel = split_cmd[1].strip()
+    if CHANNEL_ID_FILTER.match(yt_channel):
+        return yt_channel
+    if yt_channel[0] == '@':
+        if CHANNEL_HANDLE_FILTER.match(yt_channel):
+            yt_channel = await channel_by_handle(yt_channel)
+            if not yt_channel:
+                await event.reply("Channel not found.")
+                return
+            return yt_channel
+        await event.reply("Bad channel handle.")
+        return
+    await event.reply("Bad channel identifier.")
 
 @bot.on(events.NewMessage(pattern="/add_yt_sub"))
 async def add_sub(event):
     if str(event.sender_id) not in CONFIG.owner():
-        await event.reply("You don't have permission.")
+        await event.reply("You don't have permissions.")
         return
-    split_cmd = event.message.message.split(" ", 1)
-    if len(split_cmd) < 2:
-        await event.reply("Please specify the channel.")
+    channel_id = await get_channel_id(event)
+    if not channel_id:
         return
-    yt_channel = split_cmd[1]
-    if not len(yt_channel.split(" ")) == 1:
-        await event.reply("Bad channel identifier.")
-        return
-    if yt_channel[0] == '@':
-        yt_channel = await channel_by_name(yt_channel[1::])
     async with SUBS.lock:
-        SUBS.add_channel(yt_channel)
-    await event.reply("YouTube channel added.")
+        result = SUBS.add_channel(channel_id)
+    if not result:
+        await event.reply("YouTube channel successfully added.")
+    else:
+        await event.reply("The channel is already on the list.")
 
 @bot.on(events.NewMessage(pattern="/rm_yt_sub"))
 async def rm_sub(event):
     if str(event.sender_id) not in CONFIG.owner():
-        await event.reply("You don't have permission.")
+        await event.reply("You don't have permissions.")
         return
-    split_cmd = event.message.message.split(" ", 1)
-    if len(split_cmd) < 2:
-        await event.reply("Please specify the channel.")
-        return
-    yt_channel = split_cmd[1]
-    if not len(yt_channel.split(" ")) == 1:
-        await event.reply("Bad channel identifier.")
+    channel_id = await get_channel_id(event)
+    if not channel_id:
         return
     async with SUBS.lock:
-        SUBS.remove_channel(yt_channel)
-    await event.reply("YouTube channel removed.")
+        result = SUBS.remove_channel(channel_id)
+    if result:
+        await event.reply("YouTube channel successfully removed.")
+    else:
+        await event.reply("The channel isn't on the list.")
+    
 
 
 @bot.on(events.NewMessage(incoming=True, pattern="/subs_info"))
@@ -110,7 +129,7 @@ async def sub_info(event):
             info = await channel_info(channel_id)
             text += f"`{channel_id}` • `{info['items'][0]['snippet']['title']}`\n"
     await event.reply(text)
-    
+
 @bot.on(events.NewMessage(incoming=True, pattern="/mailing_list"))
 async def mailing_list(event):
     if str(event.sender_id) not in CONFIG.owner():
