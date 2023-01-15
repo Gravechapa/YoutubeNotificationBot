@@ -191,7 +191,7 @@ async def forever_check():
 
     async with SUBS.lock:
         local_chats = SUBS.chats().copy()
-    for link in MEMORY:
+    for link in reversed(MEMORY):
         if not link[1]:
             for chat in local_chats:
                 await proper_info_msg(bot, chat, link[0])
