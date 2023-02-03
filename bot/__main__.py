@@ -66,9 +66,11 @@ async def start(event):
 async def stop(event):
     async with SUBS.lock:
         result = SUBS.remove_chat(event.chat_id)
-    if not result:
+    if result:
+        await event.reply("You unsubscribed from the mailing list.")
+    else:
         await event.reply("You aren't subscribed.")
-    await event.reply("You unsubscribed from the mailing list.")
+    
 
 async def get_channel_id(event):
     split_cmd = event.message.message.split(" ", 1)
@@ -99,7 +101,7 @@ async def add_sub(event):
         return
     async with SUBS.lock:
         result = SUBS.add_channel(channel_id)
-    if not result:
+    if result:
         await event.reply("YouTube channel successfully added.")
     else:
         await event.reply("The channel is already on the list.")
