@@ -14,6 +14,7 @@
 # https://github.com/kaif-00z/YoutubeNotificationBot/blob/main/License>.
 
 import os
+import shutil
 import re
 import asyncio
 import pickle
@@ -30,6 +31,8 @@ if os.path.exists(MEMORY_DB):
         MEMORY = pickle.load(db_file)
 else:
     MEMORY = []
+    with open(MEMORY_DB, "wb") as db_file:
+        pickle.dump(MEMORY, db_file)
 MEMORY_LIMIT = 10000
 
 CHANNEL_ID_FILTER = re.compile("^UC([-_a-z0-9]{22})$", re.IGNORECASE)
@@ -178,6 +181,7 @@ async def forever_check():
     global MEMORY
     async with SUBS.lock:
         local_channels = SUBS.channels().copy()
+    update = False
     for channel_id in local_channels:
         feed = feedparser.parse(f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}")
         for entry in feed.entries:
@@ -190,6 +194,7 @@ async def forever_check():
             if found:
                 break
             MEMORY.append([yt_link, False])
+            update = True
 
     async with SUBS.lock:
         local_chats = SUBS.chats().copy()
@@ -199,12 +204,16 @@ async def forever_check():
                 await proper_info_msg(bot, chat, link[0])
                 await asyncio.sleep(3)
             link[1] = True
+            update = True
 
     if len(MEMORY) > MEMORY_LIMIT:
         MEMORY = MEMORY[len(MEMORY) - MEMORY_LIMIT::]
 
-    with open(MEMORY_DB, "wb") as db_file:
-        pickle.dump(MEMORY,db_file)
+    if update:
+        with open(MEMORY_DB + ".new", "wb") as db_file:
+            pickle.dump(MEMORY, db_file)
+        shutil.copy(MEMORY_DB, MEMORY_DB + ".bak")
+        os.replace(MEMORY_DB + ".new", MEMORY_DB)
 
 sch.add_job(forever_check,
             "interval",
